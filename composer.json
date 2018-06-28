@@ -1,5 +1,5 @@
 {
-    "name": "web/file-converter",
+    "name": "web-master/file-converter",
     "description": "csv to json, array, xml converter",
     "type": "library",
     "license": "MIT",
@@ -15,7 +15,6 @@
     },
     "autoload": {
         "psr-0": {
-            "HelloWorld": "src/",
             "FileConverter": "src/"
         }
     }
