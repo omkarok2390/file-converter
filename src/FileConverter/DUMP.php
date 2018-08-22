@@ -2,7 +2,11 @@
 namespace FileConverter;
 
 /*
+<<<<<<< HEAD
  * Large CSV DUMP into table
+=======
+ * DUMP large CSV to DB
+>>>>>>> f25752d884f59d3d1d215f5783839e2ec58cc5c0
  * csv function
  */
 
@@ -24,10 +28,10 @@ namespace FileConverter;
 //                 );
 //
 // $colConditions = array(
-//                 "li_type" => 'CASE
-//                                 WHEN @li_type like "STANDARD" THEN "Premium Campaigns"
-//                                 WHEN @li_type like "AD_EXCHANGE" THEN "Private Ad Exchange"
-//                                 ELSE @li_type
+//                 "address" => 'CASE
+//                                 WHEN @address like "PUNE" THEN "City"
+//                                 WHEN @address like "MUMBAI" THEN "Town"
+//                                 ELSE @address
 //                             END'
 //               );
 // $res = $obj->csv($mapping, $authSql, $colConditions);
@@ -110,6 +114,7 @@ class Dump
     fwrite($handle, $containt);
     $command = "mysql --user=" . $authSql['user'] ." --password=" . $authSql['password'] . " -h " . $authSql['host'] ." -D " . $authSql['database'] ." < " . $fileName;
    // return $command;
+    unlink($fileName);
     $output = shell_exec($command);
     return $output;
   }
