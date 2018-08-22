@@ -2,7 +2,11 @@
 namespace FileConverter;
 
 /*
+<<<<<<< HEAD
  * Large CSV DUMP into table
+=======
+ * DUMP large CSV to DB
+>>>>>>> f25752d884f59d3d1d215f5783839e2ec58cc5c0
  * csv function
  */
 
