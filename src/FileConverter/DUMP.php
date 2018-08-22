@@ -2,11 +2,7 @@
 namespace FileConverter;
 
 /*
-<<<<<<< HEAD
  * Large CSV DUMP into table
-=======
- * DUMP large CSV to DB
->>>>>>> f25752d884f59d3d1d215f5783839e2ec58cc5c0
  * csv function
  */
 
@@ -83,13 +79,12 @@ class Dump
     $strCSVColumns = array_keys($csvFileCol);
     $strCSVTableMapping = "";
     foreach ($csvFileCol as $key => $value) {
-        if (in_array($value, array_keys($colConditions))) {
-          // echo "==" . $key . "<br>";
-        $strCSVTableMapping .= $value . "=" . $colConditions[$value] . ", ";
-
-        }
       if ($value != '') {
-        $strCSVTableMapping .= $value . "=" . $key . ", ";
+        if (in_array($value, array_keys($colConditions))) {
+          $strCSVTableMapping .= $value . "=" . $colConditions[$value] . ", ";
+        }else {
+          $strCSVTableMapping .= $value . "=" . $key . ", ";
+        }
       }
     }
     $strCSVTableMapping = rtrim($strCSVTableMapping, ", ");
@@ -114,8 +109,8 @@ class Dump
     fwrite($handle, $containt);
     $command = "mysql --user=" . $authSql['user'] ." --password=" . $authSql['password'] . " -h " . $authSql['host'] ." -D " . $authSql['database'] ." < " . $fileName;
    // return $command;
-    unlink($fileName);
     $output = shell_exec($command);
+    unlink($fileName);
     return $output;
   }
 }
