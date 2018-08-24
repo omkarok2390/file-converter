@@ -82,21 +82,19 @@ class DUMP
     @peram4 array(optional) => mysql column conditions
   */
 
-  public function createContaintent($mapper, $authSql) {
-    $strCSVColumns = array_keys($mapper[0]);
-// return    $strCSVColumns;
+  public function createContaintent($csvFileCol, $authSql, $colConditions = []) {
+    $strCSVColumns = array_keys($csvFileCol);
     $strCSVTableMapping = "";
-    foreach ($mapper[0] as $key => $value) {
+    foreach ($csvFileCol as $key => $value) {
       if ($value != '') {
+        if (in_array($value, array_keys($colConditions))) {
+          $strCSVTableMapping .= $value . "=" . $colConditions[$value] . ", ";
+        }else {
           $strCSVTableMapping .= $value . "=" . $key . ", ";
+        }
       }
     }
-    foreach ($mapper[1] as $key => $value) {
-          $strCSVTableMapping .= $key . "=" . $value . ", ";
-    }
-
     $strCSVTableMapping = rtrim($strCSVTableMapping, ", ");
-    // return $strCSVTableMapping;
     $containt = "
       TRUNCATE TABLE ". $authSql['table'] .";
       set @StartTime = NOW();
@@ -118,8 +116,7 @@ class DUMP
     fwrite($handle, $containt);
     $command = "mysql --user=" . $authSql['user'] ." --password=" . $authSql['password'] . " -h " . $authSql['host'] ." -D " . $authSql['database'] ." < " . $fileName;
    // return $command;
-    $output = shell_exec($command . " 2>&1");
-    $output = str_replace("mysql: [Warning] Using a password on the command line interface can be insecure.","",$output);
+    $output = shell_exec($command);
     unlink($fileName);
     return $output;
   }

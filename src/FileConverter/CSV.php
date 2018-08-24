@@ -22,7 +22,7 @@ class CSV
   public function toJson($feed, $target) {
     $keys = array();
     $newArray = array();
-    $data = $this->toArray($feed, ',', $target);
+    $data = self::toArray($feed, ',', $target);
     $count = count($data) - 1;
     $labels = array_shift($data);
     foreach ($labels as $label) {
@@ -59,9 +59,9 @@ class CSV
   }
 
   public function toXML($feed, $target){
-    $json = $this->toJson($feed, $target);
+    $json = self::toJson($feed, $target);
     $array = json_decode($json, true);
-    return $xml = $this->arrayToXML($array, false);
+    return $xml = self::arrayToXML($array, false);
   }
 
   // Function to convert  array to XML
@@ -73,7 +73,7 @@ class CSV
 
       foreach($array as $key => $value){
           if(is_array($value)){
-              $this->arrayToXML($value, $xml->addChild($key));
+              self::arrayToXML($value, $xml->addChild($key));
           } else {
               $xml->addChild($key, $value);
           }
