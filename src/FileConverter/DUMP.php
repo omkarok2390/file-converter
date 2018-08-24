@@ -2,41 +2,41 @@
 namespace FileConverter;
 
 /*
- * DUMP large CSV to DB
+ * Large CSV DUMP into table
  * csv function
  */
 
 // header('Content-type: application/json');
 // Set your CSV feed
-// $obj = new Dump();
+// $obj = new DUMP();
 // $mapping = array(
-//                 "date_d" => 'Dimension.DATE',
+//                 "date" => 'Dimension.date',
 //                 "name" => 'Dimension.name',
-//                 "sirname" => 'Dimension.sirname'
+//                 "address" => 'Dimension.address'
 //               );
 // $authSql = array(
 //                   'user' => 'root',
 //                   'password' => 'root',
 //                   'host' =>  'localhost',
 //                   'database' =>  'DB_Name',
-//                   'table' => 'table_name',
-//                   'csvFilePath' => 'file_name_with_path'
+//                   'table' => 'Table_Name',
+//                   'csvFilePath' => 'path/file.csv'
 //                 );
-
+//
 // $colConditions = array(
-//                 "name" => 'CASE
-//                                 WHEN @name like "name_1" THEN "new_name_1"
-//                                 WHEN @name like "name_2" THEN "new_name_2"
-//                                 ELSE @name
+//                 "address" => 'CASE
+//                                 WHEN @address like "PUNE" THEN "City"
+//                                 WHEN @address like "MUMBAI" THEN "Town"
+//                                 ELSE @address
 //                             END'
 //               );
 // $res = $obj->csv($mapping, $authSql, $colConditions);
 // echo json_encode($res);
 
-class Dump
+class DUMP
 {
 
-  // Function to convert Dump into associative array
+  // Function to convert DUMP into associative array
   /*
     @peram1 array => CSV column namae mapping.
     @peram2 array => mysql user, password, host, tableName
@@ -44,24 +44,31 @@ class Dump
 
 
   */
-  public function csv($mapping, $authSql, $colConditions = []) {
+  public function csv($mapping, $authSql) {
     // return array_values($mapping);
+    $mapper = [];
     $delimiter = ',';
     if (($handle = fopen($authSql['csvFilePath'], 'r')) !== FALSE) {
       $i = 0;
       while (($lineArray = fgetcsv($handle, 4000, $delimiter, '"')) !== FALSE) {
         $lineArray=array_map('trim',$lineArray);
-        if(count(array_intersect($lineArray, array_values($mapping))) >= count(array_values($mapping))){
+        if(count(array_intersect($lineArray, array_values($mapping)))){
              $arr = [];
              foreach ($lineArray as $key => $value) {
               if (in_array($value, array_values($mapping))) {
-                $arr["@".array_search ($value, $mapping)]= array_search ($value, $mapping);
+                if (substr(array_search ($value, $mapping), 0, 1) === '@') {
+                    $arr[array_search ($value, $mapping)]= "";
+                 }else{
+                    $arr["@".array_search ($value, $mapping)]= array_search ($value, $mapping);
+                 }
+                 unset($mapping[array_search ($value, $mapping)]);
               }else{
-                $arr["@col".$key]= '';                
+                $arr["@col".$key]= '';
               }
              }
-             // return $arr;
-             return $this->createContaintent($arr, $authSql, $colConditions);
+             array_push($mapper, $arr, $mapping);
+             // return $mapper;
+             return self::createContaintent($mapper, $authSql);
         }
         fclose($handle);
       }
@@ -75,69 +82,46 @@ class Dump
     @peram4 array(optional) => mysql column conditions
   */
 
-  public function createContaintent($csvFileCol, $authSql, $colConditions = []) {
-
-// return $csvFileCol;
-
-    $strCSVColumns = array_keys($csvFileCol);
-    // return implode(', ', $strCSVColumns);
-// return array_keys($colConditions);
-$strCSVTableMapping = "";    
-foreach ($csvFileCol as $key => $value) {
-    if (in_array($value, array_keys($colConditions))) {
-      // echo "==" . $key . "<br>";
-    $strCSVTableMapping .= $value . "=" . $colConditions[$value] . ", ";
-
+  public function createContaintent($mapper, $authSql) {
+    $strCSVColumns = array_keys($mapper[0]);
+// return    $strCSVColumns;
+    $strCSVTableMapping = "";
+    foreach ($mapper[0] as $key => $value) {
+      if ($value != '') {
+          $strCSVTableMapping .= $value . "=" . $key . ", ";
+      }
     }
-  if ($value != '') {
-    $strCSVTableMapping .= $value . "=" . $key . ", ";
-  }
-}
-$strCSVTableMapping = rtrim($strCSVTableMapping, ", ");
-// return $strCSVTableMapping;
+    foreach ($mapper[1] as $key => $value) {
+          $strCSVTableMapping .= $key . "=" . $value . ", ";
+    }
 
+    $strCSVTableMapping = rtrim($strCSVTableMapping, ", ");
+    // return $strCSVTableMapping;
     $containt = "
-TRUNCATE TABLE ". $authSql['table'] .";
+      TRUNCATE TABLE ". $authSql['table'] .";
+      set @StartTime = NOW();
+      LOAD DATA LOCAL INFILE '". $authSql['csvFilePath'] ."'
+      INTO TABLE 00_dfp_data
+      FIELDS TERMINATED BY ','
+      ENCLOSED BY '\"'
+      LINES TERMINATED BY '\\n' IGNORE 1 ROWS
+      (
+        " . implode(', ', $strCSVColumns) ."
+      )
+      set
+        ". $strCSVTableMapping .";
+        select concat ('Updated ', row_count(), ' rows ', 'Start time: ', @StartTime, ' End time: ', NOW(), ' Duration: ',  TIMEDIFF(NOW(), @StartTime)) as '';
+        ";
 
-set @StartTime = NOW();
-
-LOAD DATA LOCAL INFILE '". $authSql['csvFilePath'] ."'  
-INTO TABLE 00_dfp_data
-FIELDS TERMINATED BY ','
-ENCLOSED BY '\"'
-LINES TERMINATED BY '\\n' IGNORE 1 ROWS
-(
-  " . implode(', ', $strCSVColumns) ."
-)
-set 
-  ". $strCSVTableMapping .";
-
-
-select concat ('Updated ', row_count(), ' rows ', 'Start time: ', @StartTime, ' End time: ', NOW(), ' Duration: ',  TIMEDIFF(NOW(), @StartTime)) as ''; 
-
-
-";
-
-$fileName = 'file.sql';
-$handle = fopen($fileName, 'w') or die('Cannot open file:  '.$fileName);
-
-fwrite($handle, $containt);
-
-
-
-  // $script_path = './test.sql';
-
-   // $command = "mysql --user={$user} --password='{$password}' "
-   // . "-h {$host} -D {$table} < {$script_path}";
-
-   $command = "mysql --user=" . $authSql['user'] ." --password=" . $authSql['password'] . " -h " . $authSql['host'] ." -D " . $authSql['database'] ." < " . $fileName;
+    $fileName = 'file.sql';
+    $handle = fopen($fileName, 'w') or die('Cannot open file:  '.$fileName);
+    fwrite($handle, $containt);
+    $command = "mysql --user=" . $authSql['user'] ." --password=" . $authSql['password'] . " -h " . $authSql['host'] ." -D " . $authSql['database'] ." < " . $fileName;
    // return $command;
-  $output = shell_exec($command);
-  unlink($fileName);
-  return $output;
-
+    $output = shell_exec($command . " 2>&1");
+    $output = str_replace("mysql: [Warning] Using a password on the command line interface can be insecure.","",$output);
+    unlink($fileName);
+    return $output;
   }
-
-
 }
- ?>
+?>
