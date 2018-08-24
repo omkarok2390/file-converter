@@ -82,6 +82,7 @@ class DUMP
     @peram4 array(optional) => mysql column conditions
   */
 
+
   public function createContaintent($mapper, $authSql) {
     $strCSVColumns = array_keys($mapper[0]);
 // return    $strCSVColumns;
@@ -110,7 +111,7 @@ class DUMP
       )
       set
         ". $strCSVTableMapping .";
-        select concat ('Updated ', row_count(), ' rows ', 'Start time: ', @StartTime, ' End time: ', NOW(), ' Duration: ',  TIMEDIFF(NOW(), @StartTime)) as '';
+        select concat ('inserted ', row_count(), ' rows ', 'Start time: ', @StartTime, ' End time: ', NOW(), ' Duration: ',  TIMEDIFF(NOW(), @StartTime)) as '';
         ";
 
     $fileName = 'file.sql';
