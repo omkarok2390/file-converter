@@ -82,6 +82,7 @@ class DUMP
     @peram4 array(optional) => mysql column conditions
   */
 
+
   public function createContaintent($mapper, $authSql) {
     $strCSVColumns = array_keys($mapper[0]);
 // return    $strCSVColumns;
