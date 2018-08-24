@@ -102,7 +102,7 @@ class DUMP
       TRUNCATE TABLE ". $authSql['table'] .";
       set @StartTime = NOW();
       LOAD DATA LOCAL INFILE '". $authSql['csvFilePath'] ."'
-      INTO TABLE 00_dfp_data
+      INTO TABLE '". $authSql['table'] ."'
       FIELDS TERMINATED BY ','
       ENCLOSED BY '\"'
       LINES TERMINATED BY '\\n' IGNORE 1 ROWS
