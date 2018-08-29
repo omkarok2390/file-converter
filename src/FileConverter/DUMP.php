@@ -99,7 +99,6 @@ class DUMP
     $strCSVTableMapping = rtrim($strCSVTableMapping, ", ");
     // return $strCSVTableMapping;
     $containt = "
-      TRUNCATE TABLE ". $authSql['table'] .";
       set @StartTime = NOW();
       LOAD DATA LOCAL INFILE '". $authSql['csvFilePath'] ."'
       INTO TABLE ". $authSql['table'] ."
